@@ -9,8 +9,9 @@ public class PlaceholderCameraFollow : MonoBehaviour
         Cursor.visible = false;
     }
 
-    void Update()
+    void LateUpdate()
     {
-        transform.forward = Camera.main.transform.forward;
+        //transform.forward = Camera.main.transform.forward;
+        transform.rotation = Quaternion.LookRotation(Camera.main.transform.forward);
     }
 }
