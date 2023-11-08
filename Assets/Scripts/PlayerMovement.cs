@@ -14,14 +14,18 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private float downwardSpeedCap = -40f;
 
     Rigidbody playerRigidbody;
+    FuelSystem fuelSystem;
 
-    bool isGrounded = false;
-    bool isFlying = false;
+    private bool isGrounded = false;
+    private bool isFlying = false;
+    //property, basically works like a getter function
+    public bool IsFlying{ get{ return isFlying; } }
 
 
     void Awake()
     {
         playerRigidbody = GetComponent<Rigidbody>();
+        fuelSystem = GetComponent<FuelSystem>();
     }
 
     void Update()
@@ -32,7 +36,8 @@ public class PlayerMovement : MonoBehaviour
 
         //for flying (the || check means if you are holding jump while falling and hit the ground,
         //you will start flying again without needing to jump)
-        if(Input.GetButton("Jump") && (!isGrounded || isFlying)){
+        //also check if the player currently has fuel.
+        if(Input.GetButton("Jump") && (!isGrounded || isFlying) && fuelSystem.HasFuel){
             isFlying = true;
         } else {
             isFlying = false;
