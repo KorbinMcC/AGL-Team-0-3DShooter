@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
@@ -15,21 +16,29 @@ public class PlayerMovement : MonoBehaviour
 
     Rigidbody playerRigidbody;
     FuelSystem fuelSystem;
+    Health playerHealth;
 
     private bool isGrounded = false;
     private bool isFlying = false;
     //property, basically works like a getter function
     public bool IsFlying{ get{ return isFlying; } }
 
-
     void Awake()
     {
         playerRigidbody = GetComponent<Rigidbody>();
         fuelSystem = GetComponent<FuelSystem>();
+        playerHealth = GetComponent<Health>();
     }
 
     void Update()
     {
+        //check if the player is dead, if so don't allow movement
+        if(playerHealth.IsDead){ 
+            isFlying = false;
+            playerRigidbody.velocity = new Vector3(0f, playerRigidbody.velocity.y, 0f);
+            return; 
+        }
+
         //two different speeds, one for grounded, one for while in the air
         float moveSpeed = isGrounded ? groundedMoveSpeed : flyingMoveSpeed;
         playerRigidbody.velocity = CalculateMovement(moveSpeed);
