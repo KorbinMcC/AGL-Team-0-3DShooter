@@ -14,11 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   weaponPrefab: {fileID: 0}
   hitEffect: {fileID: 0}
-  projectile: {fileID: 3845033794974291123, guid: b5edc632c138b234e9c0e5bf21fc88ca, type: 3}
+  projectile: {fileID: 2047214768337817489, guid: 4f4d0a090759db74fb2feadf55427f98, type: 3}
   weaponName: The GUN
   magazineSize: 4
-  fireRate: 5
-  damagePerShot: 2
+  damagePerShot: 60
   weaponRange: 30
   reloadTime: 3
   requiresFuelToReload: 1

@@ -29,6 +29,8 @@ public class PlayerMovement : MonoBehaviour
 
 
     private bool isGrounded = false;
+    public bool IsGrounded{ get{ return isGrounded; } }
+
     private bool isFlying = false;
     //property, basically works like a getter function
     public bool IsFlying{ get{ return isFlying; } }
@@ -81,7 +83,6 @@ public class PlayerMovement : MonoBehaviour
             animator.SetBool(IsNotGrounded, true);
             animator.ResetTrigger(CancelFlight);
         }
-
 
         //change the player's walking animation
         PlayerAnimation();

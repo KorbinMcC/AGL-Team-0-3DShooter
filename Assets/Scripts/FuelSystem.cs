@@ -25,7 +25,7 @@ public class FuelSystem : MonoBehaviour
     
     PlayerMovement playerMovement;
     WeaponManager weaponManager;
-    [SerializeField] private float currentFuelAmount;
+    private float currentFuelAmount;
 
     private bool hasFuel = true;
     public bool HasFuel{ get{ return hasFuel; } }

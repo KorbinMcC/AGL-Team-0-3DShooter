@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 7642857375946370160}
   - component: {fileID: 3586999283259335785}
   m_Layer: 0
-  m_Name: JammoPlaceholderGun
+  m_Name: PlaceholderRifle
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

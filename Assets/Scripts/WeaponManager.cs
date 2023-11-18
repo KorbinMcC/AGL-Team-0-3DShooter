@@ -7,8 +7,11 @@ public class WeaponManager : MonoBehaviour
 {
     public event Action OnWeaponChanged;
 
-    [SerializeField] Transform aimTargetTransform;
+    //[SerializeField] Transform aimTargetTransform;
     [SerializeField] Transform playerModelWeaponParent = null;
+    [SerializeField] Transform playerProjectileSpawnPoint = null;
+
+    [SerializeField] GameObject weaponLine = null;
 
     [SerializeField] WeaponSO[] weapons;
     private int currentWeaponIndex = 0;
@@ -44,9 +47,9 @@ public class WeaponManager : MonoBehaviour
     void Update()
     {
         CheckForWeaponChange();
-        Vector3 mousePosition;
-
-        mousePosition = FireRayAtCenterOfScreen();
+        
+        //Was for trying to get player rig to look at target, not doing anything currently.
+        // FireRayAtCenterOfScreen();
 
         //can reload with R if your magazine is not full, or reload automatically when out of ammo.
         if( (Input.GetKeyDown(KeyCode.R) && currentAmmo[currentWeaponIndex] != currentWeaponSO.magazineSize)
@@ -58,7 +61,7 @@ public class WeaponManager : MonoBehaviour
 
         if (hasAmmo)
         {
-            ProcessWeaponFiring(mousePosition);
+            ProcessWeaponFiring();
         }
         else
         {
@@ -111,44 +114,94 @@ public class WeaponManager : MonoBehaviour
         }
     }
 
-    private void ProcessWeaponFiring(Vector3 mousePosition)
+    private void ProcessWeaponFiring()
     {
+        //start by getting a raycast straight out of the camera.
+        Physics.Raycast(Camera.main.transform.position,
+                 Camera.main.transform.forward,
+                 out RaycastHit hit,
+                 100000f);
+        //doing a raycast from player to center of screen has some issues, so
+        //we do this to get "hit.point" so now we can go from player to hit.point which is nicer.
+        //it's given a high range so it should almost always hit something.
+        //if it doesn't just rely on the inaccurate camera transform forward.
+
+        //if we didn't hit something with the initial raycast, the hit.point will be 0,0,0.
+        //so if it didn't something, use the inaccurate camera aim, otherwise use hit.point.
+        Vector3 fireDirection;
+        if(hit.point == Vector3.zero){
+            fireDirection = Camera.main.transform.forward;
+        } else {
+            fireDirection = (hit.point - playerProjectileSpawnPoint.position).normalized;
+        }
+        //there are invisible walls around the current playspace, so this *should* be unnecesssary.
+
         if(Input.GetMouseButtonDown(0)){
-            currentAmmo[currentWeaponIndex] -= 1; 
+            currentAmmo[currentWeaponIndex] = Mathf.Max(currentAmmo[currentWeaponIndex] - 1, 0); 
             OnWeaponChanged?.Invoke();
 
+            //if the weapon has an associated projectile, fire that
             if(currentWeaponSO.projectile != null){
-                GameObject proj = Instantiate(currentWeaponSO.projectile, playerModelWeaponParent.position, Quaternion.LookRotation(mousePosition));
+                GameObject proj = Instantiate(currentWeaponSO.projectile,
+                 playerProjectileSpawnPoint.position,
+                 Quaternion.identity);
+                
+                //set up the projectile, giving it the direction to fly.
+                proj.transform.forward = fireDirection;
+                
                 proj.GetComponent<Projectile>().SetDamage(currentWeaponSO.damagePerShot);
+                proj.GetComponent<Projectile>().SetRange(currentWeaponSO.weaponRange);
                 proj.GetComponent<Projectile>().SetOwner(gameObject);
 
+            //otherwise just fire a raycast and deal damage if it hits
             } else {
-                if(Physics.Raycast(playerModelWeaponParent.position, aimTargetTransform.position, out RaycastHit hit, currentWeaponSO.weaponRange)){
-                    Debug.DrawLine(playerModelWeaponParent.position, aimTargetTransform.position, Color.red, 10f);
-                    
-                    if(hit.collider.gameObject.TryGetComponent<Health>(out Health health)){
+                //if the raycast from the player hits something:
+                if(Physics.Raycast(playerProjectileSpawnPoint.position,
+                    fireDirection,
+                    out RaycastHit newHit,
+                    currentWeaponSO.weaponRange)){
+
+                    //for testing, in scene view you can see a line where the aim hit.
+                    Debug.DrawLine(playerProjectileSpawnPoint.position, newHit.point, Color.red, 10f);
+
+                    //draw a line between the shooter and the target here
+                    //use the player's projectile spawn point as the start, and newHit.point as the end.
+                    GameObject line = Instantiate(weaponLine);
+                    line.GetComponent<LineRenderer>().SetPosition(0, playerProjectileSpawnPoint.position);
+                    line.GetComponent<LineRenderer>().SetPosition(1, newHit.point);
+                    Destroy(line, 0.2f);
+
+                    //if the weapon has a "hit effect", like some particles when it hits something, spawn it here.
+                    //and spawn it using hit.normal, so the "up" of the effect faces where the cast came from.
+                    if(currentWeaponSO.hitEffect != null){
+                        Instantiate(currentWeaponSO.hitEffect, newHit.point, Quaternion.LookRotation(hit.normal));
+                    }
+
+                    //if the target has a health component, deal damage
+                    if(newHit.collider.gameObject.TryGetComponent<Health>(out Health health)){
                         health.TakeDamage(currentWeaponSO.damagePerShot);
                     }
+                //otherwise, just fire off a line that without logic.
+                } else {
+                    //draw a line between the shooter and the point at to their weapon's max range.
+                    Vector3 verticalOffset = Vector3.up * 0.15f;
+
+                    GameObject line = Instantiate(weaponLine);
+                    line.GetComponent<LineRenderer>().SetPosition(0, playerProjectileSpawnPoint.position);
+                    line.GetComponent<LineRenderer>().SetPosition(1, hit.point);
+                    Destroy(line, 0.2f);
                 }
             }
         }
-
     }
 
-    private Vector3 FireRayAtCenterOfScreen(){
-        Vector3 mousePosition = Vector3.zero;
-
-        Vector2 centerScreenPoint = new Vector2(Screen.width / 2f, Screen.height / 2f);
-
-        Ray ray = Camera.main.ScreenPointToRay(centerScreenPoint);
-        if(Physics.Raycast(ray, out RaycastHit raycastHit, 500f)){
-            aimTargetTransform.position = raycastHit.point;
-            mousePosition = raycastHit.point;
-            print(raycastHit.point);
-        }
-
-        return mousePosition;
-    }
+    // private void FireRayAtCenterOfScreen(){
+    //     Vector2 centerScreenPoint = new Vector2(Screen.width / 2f, Screen.height / 2f);
+    //     Ray ray = Camera.main.ScreenPointToRay(centerScreenPoint);
+    //     if(Physics.Raycast(ray, out RaycastHit raycastHit, 500f)){
+    //         aimTargetTransform.position = raycastHit.point;
+    //     }
+    // }
 
     private void ProcessKeyInput()
     {

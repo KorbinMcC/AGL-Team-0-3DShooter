@@ -10,6 +10,10 @@ public class PlayerWeaponDisplay : MonoBehaviour
     [Header("Weapon Visual Settings")]
     [SerializeField] TextMeshProUGUI currentAmmoText = null;
     [SerializeField] Slider ammoBar = null;
+    [SerializeField] Image ammoBarFill = null;
+    
+    [SerializeField] Color hasAmmoColor;
+    [SerializeField] Color reloadingColor;
     
     [SerializeField] TextMeshProUGUI weaponNamePanel = null;
 
@@ -27,13 +31,17 @@ public class PlayerWeaponDisplay : MonoBehaviour
         weaponManager.OnWeaponChanged -= UpdateWeaponDisplay;
     }
 
-    // private void Start() {
-    //     if(maxHealthText != null){
-    //         maxHealthText.text = String.Format("{0:0}", playerHealth.GetMaxHealth());
-    //     }
-    // }
+
     private void Update() {
         float ammoPercent = weaponManager.GetAmmoSliderPercentage();
+
+        if(weaponManager.HasAmmo && ammoBarFill.color != hasAmmoColor){
+            ammoBarFill.color = hasAmmoColor;
+        } 
+
+        if(!weaponManager.HasAmmo && ammoBarFill.color != reloadingColor){
+            ammoBarFill.color = reloadingColor;
+        }
 
         ammoBar.value = ammoPercent;
     }
