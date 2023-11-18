@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 64632023de970ab4fb55b9affa518867, type: 3}
+  m_Name: TestWeapon
+  m_EditorClassIdentifier: 
+  weaponPrefab: {fileID: 0}
+  hitEffect: {fileID: 0}
+  projectile: {fileID: 3845033794974291123, guid: b5edc632c138b234e9c0e5bf21fc88ca, type: 3}
+  weaponName: The GUN
+  magazineSize: 4
+  fireRate: 5
+  damagePerShot: 2
+  weaponRange: 30
+  reloadTime: 3
+  requiresFuelToReload: 1
+  fuelCostToReload: 30

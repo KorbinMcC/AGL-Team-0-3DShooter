@@ -24,6 +24,7 @@ public class FuelSystem : MonoBehaviour
 
     
     PlayerMovement playerMovement;
+    WeaponManager weaponManager;
     [SerializeField] private float currentFuelAmount;
 
     private bool hasFuel = true;
@@ -32,6 +33,7 @@ public class FuelSystem : MonoBehaviour
     private void Awake() {
         currentFuelAmount = maxFuelAmount;
         playerMovement = GetComponent<PlayerMovement>();
+        weaponManager = GetComponent<WeaponManager>();
     }
 
     void Update()
@@ -39,6 +41,7 @@ public class FuelSystem : MonoBehaviour
         if(hasFuel){
             //actions when player has fuel
             CalculateFuelFromFlying();
+            DrainFuelWhileReloading();
         } else {
             //overheating, player can't do fuel based actions until it fully refills.
             currentFuelAmount = Mathf.Min(currentFuelAmount + (overheatedFuelRegenRate * Time.deltaTime), maxFuelAmount);
@@ -94,5 +97,17 @@ public class FuelSystem : MonoBehaviour
             //but cap it at our max fuel amount.
             currentFuelAmount = Mathf.Min(currentFuelAmount + (naturalFuelRegenRate * Time.deltaTime), maxFuelAmount);
         }
+    }
+
+    private void DrainFuelWhileReloading()
+    {
+        //if the player is currently reloading
+        if (!weaponManager.HasAmmo && weaponManager.CurrentWeapon.requiresFuelToReload)
+        {
+            //drain fuel at that weapon's fuel cost to reload per second
+            //but have it stop at 0 instead of going into negatives.
+            currentFuelAmount = Mathf.Max(currentFuelAmount - (weaponManager.CurrentWeapon.fuelCostToReload * Time.deltaTime), 0f);
+        }
+        //don't increase fuel otherwise, since that would stack with flying fuel gain.
     }
 }
