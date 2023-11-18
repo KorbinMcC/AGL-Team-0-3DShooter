@@ -17,6 +17,16 @@ public class PlayerMovement : MonoBehaviour
     Rigidbody playerRigidbody;
     FuelSystem fuelSystem;
     Health playerHealth;
+    [SerializeField] Animator animator;
+
+    //strings used for animations:
+    private readonly int GroundedSpeedX = Animator.StringToHash("GroundedSpeedX");
+    private readonly int GroundedSpeedZ = Animator.StringToHash("GroundedSpeedZ");
+    private readonly int OnJump = Animator.StringToHash("OnJump");
+    private readonly int CancelFlight = Animator.StringToHash("CancelFlight");
+    private readonly int IsNotGrounded = Animator.StringToHash("IsNotGrounded");
+
+
 
     private bool isGrounded = false;
     private bool isFlying = false;
@@ -41,12 +51,15 @@ public class PlayerMovement : MonoBehaviour
 
         //two different speeds, one for grounded, one for while in the air
         float moveSpeed = isGrounded ? groundedMoveSpeed : flyingMoveSpeed;
+
         playerRigidbody.velocity = CalculateMovement(moveSpeed);
 
         //for flying (the || check means if you are holding jump while falling and hit the ground,
         //you will start flying again without needing to jump)
         //also check if the player currently has fuel.
         if(Input.GetButton("Jump") && (!isGrounded || isFlying) && fuelSystem.HasFuel){
+            animator.ResetTrigger(CancelFlight);
+            animator.ResetTrigger(OnJump);
             isFlying = true;
         } else {
             isFlying = false;
@@ -55,7 +68,23 @@ public class PlayerMovement : MonoBehaviour
         //for just jumping
         if(Input.GetButtonDown("Jump") && isGrounded){
             playerRigidbody.AddForce(Vector3.up * jumpForce);
+            animator.SetTrigger(OnJump);
         }
+
+        if(!isFlying && isGrounded){
+            animator.SetTrigger(CancelFlight);
+        }
+
+        if(isGrounded){
+            animator.SetBool(IsNotGrounded, false);
+        } else {
+            animator.SetBool(IsNotGrounded, true);
+            animator.ResetTrigger(CancelFlight);
+        }
+
+
+        //change the player's walking animation
+        PlayerAnimation();
 
         //prevent vertical speed from getting too high or low.
         ClampVerticalSpeed();
@@ -76,6 +105,19 @@ public class PlayerMovement : MonoBehaviour
     private void OnTriggerExit(Collider other) {
         isGrounded = false;
     }
+
+
+    void PlayerAnimation() {
+		//Calculate Input Vectors
+		float InputX = Input.GetAxis("Horizontal");
+		float InputZ = Input.GetAxis("Vertical");
+
+		//Calculate the Input Magnitude
+
+		animator.SetFloat(GroundedSpeedX, InputX, .1f, Time.deltaTime);
+	    animator.SetFloat(GroundedSpeedZ, InputZ, .1f, Time.deltaTime);
+		
+	}
 
     private Vector3 CalculateMovement(float currentMoveSpeed){
         //store the forward and right direction in their own vectors

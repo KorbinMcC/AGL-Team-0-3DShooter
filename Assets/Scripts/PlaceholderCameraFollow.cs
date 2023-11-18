@@ -12,6 +12,8 @@ public class PlaceholderCameraFollow : MonoBehaviour
     void LateUpdate()
     {
         //transform.forward = Camera.main.transform.forward;
-        transform.rotation = Quaternion.LookRotation(Camera.main.transform.forward);
+        Vector3 lookDir = new Vector3(Camera.main.transform.forward.x, 0f, Camera.main.transform.forward.z);
+        //transform.rotation = Quaternion.LookRotation(lookDir);
+        transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(lookDir), 100f);
     }
 }
